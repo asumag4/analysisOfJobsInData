@@ -30,6 +30,9 @@ from pathlib import Path
 from tqdm import tqdm
 tqdm.pandas()
 
+# postgresql connection
+import psycopg2
+
 #========================================================================================================#
 
 class Pipeline: 
@@ -215,17 +218,42 @@ class Pipeline:
         return None
 
     def get_unique_locations(self, df, loc_col_key):
-    # To prevent calling the our GoogleV3 Maps API too much, this function 
-    # is meant to create a new table/dataframe that will extract the coordinates 
-    # NOTE: `location_column`, will have to be called as df[['column']]
+    # To streamline and minimize API calls, I opted for a solution where 
+    # we will get the unique locations from each of our data sources and 
+    # store location/ geocode in a separate table 
+    
+        df_unique_locs = df[loc_col_key].unique()
+        for loc in df_unique_locs:
+            if loc not in self.unique_locations:
+                self.unique_locations.append(loc)
 
-        locations_df = pd.DataFrame(df[loc_col_key].unique()).rename(mapper = {0: 'locations'}, axis = 1)
-
-        locations_df['coordinates'] = locations_df[loc_col_key].progress_apply(self.get_coordinates)
-        locations_df['country_iso'] = locations_df['coordinates'].progress_apply(self.get_country_iso)
-
-        return locations_df
-
+    def get_locations_file(self):
         
+        # Retrieve the saved data
+        locations_file = Path("../metadata/unique_locations.parquet")
+        
+        if locations_file.is_file():
+            with open(locations_file, mode="r") as file:
+                self.unique_locations = json.load(file)
+            print(f"File: {locations_file}, has been loaded into the pipeline.")
+        else: 
+            self.unique_locations = {}
+            print(f"A new instance of tabulated skills data has been initiated")
+    
+    
+    def save_tabulated_jobs(self):
+        # Save the data via complete over-write 
+        
+        # Retrieve the saved data
+        locations_file = Path("../metadata/unique_locations.csv")
+        
+        if locations_file.is_file():
+            print(f"The file {locations_file} has been overwritten")
+        else: 
+            print(f"The file {locations_file} has been created and saved")
+            
+        with open(locations_file, mode="w") as file:
+            json.dump(self.unique_skills, file)
 
+    def set_db_connection():
 
