@@ -2,6 +2,13 @@
 [ ] Use UV to create a working py env for this project.
 
 # Data Cleaning & Staging
+
+### API calling of raw datasets 
+[ ] - Luke Barousse's dataset can be automatically called via Kaggle API 
+[ ] - Asanickza's dataset can be automatically called via Kaggle API 
+[ ] - Find a way to download and load AIJobs.net dataset automatically. 
+[ ] - Have to implement an update pipeline from these datasources to their respective final destinations. 
+
 ## Dimensions:
 
 #### Skills:
@@ -20,15 +27,32 @@
 [X] Use ~~AI~~ geopy to give you coordinates
 [ ] Use 2 ISO-code to encode country data 
 [ ] Decompose datasets as much as possible. 
+[ ] Should have a location heirarchy, country, city, province/state level. Need to be added 
+via ChatGPT. 
 
-#### Pushing to SQL:
-
-[ ] Push data to SQL Database 
-[ ] Create relationships in SQL Database
+#### Potential other data sources: 
 [ ] Harvest GDP per capita data 
 [ ] Harvest industry relevance of skills
 [ ] Need to extract coordinates from the map
 [ ] Mapping for country names needs to be standardized.
+[ ] Cost of living index (Numbeo, OECD datasets) → normalize salary offers by city/country.
+[ ] Tax data (country/state-level income tax rates) → compute net salary potential.
+[ ] Unemployment rate by sector/location (World Bank, national stats).
+[ ] Industry demand data (Bureau of Labor Statistics, O*NET, Eurostat).
+
+#### Pushing to SQL (stage_etl): 
+
+[ ] Push data to SQL Database 
+[ ] Create relationships in SQL Database
+
+#### Creating Modelling Data
+[ ] Will I need a column for each skill that is tabulated? 
+[ ] We'll use coordinates for location training 
+[ ] We'll use categorical variable `COUNTRY` 
+
+#### Creating Reporting Data
+[ ] Will need to normalize all jobs so that the user can click through different sources for a thorough analysis 
+    [ ] Essentially, have column for `SOURCE`, `UNIQUE JOB ID`, which the `UNIQUE JOB ID` can map to their source tables for skills, location, etc etc. 
 
 # Reporting & Dashboard
 
@@ -54,3 +78,17 @@
 
 - Luke Barousse dataset and AiJobs.net dataset are both updated. So we can generate an web scraper to scrape AiJobs.net and then use API from kaggle to scrape the data and update our processes as such. 
 - Probably would want to save a JSON of tabulated `unique_skills`, to reduce processing times throughout the pipeline for future processing. We'll need to make a function within class `Pipeline` to save and load 
+
+
+# 2025-08-16 LEFT TO DO STEP-BY-STEP: 
+
+### Data-source loading
+1. All the output/unique counting data lists need to be in pandas dataform for 
+faster interperability, readiness for insertion and reading to postgreSQL after each interpretation
+2. Push data to be read using OpenAI calls
+ 
+### ETL Process
+1. Add country/city-level hierarchy to tabulated locations
+2. Make a generalized form of job titles {A. Make a cut out (developer, engineer, manager, analyst), B. Then join the experience-level count to it} 
+3. Make a measure for count of experience level jobs 
+

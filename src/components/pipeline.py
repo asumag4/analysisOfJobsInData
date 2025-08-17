@@ -46,7 +46,35 @@ class Pipeline:
             geolocator = GoogleV3(google_api_key)
         self.geolocator = geolocator
 
-    # --- SKILL SCANNER --- 
+        # ============ INITIATION OF FILE-DEPENDENT ATTR ============
+        data_attributes = [
+            'locations',
+            'job_titles']
+
+        for attr in data_attributes:
+            tab_attr_file = Path(f"../metadata/tabulated_{attr}.json")
+
+            if tab_attr_file.is_file():
+                with open(tab_attr_file, mode="r") as file:
+                    setattr(self, f"unique_{attr}", json.load(file))
+                print(f"File {tab_attr_file} has been loaded into the pipeline.")
+            else:
+                setattr(self, f"unique_{attr}", {})
+                print(f"A new instance of tabulated {attr} data has been initiated")
+
+        # ==== INTIATING: list of unique skills ==== 
+        # Retrieve the saved data 
+        tab_skills_file = Path("../metadata/tabulated_skills.json") 
+        
+        if tab_skills_file.is_file(): 
+            with open(tab_skills_file, mode="r") as file: 
+                self.unique_skills = json.load(file) 
+                print(f"File {tab_skills_file} has been loaded into the pipeline.") 
+        else: 
+            self.unique_skills = {} 
+            print(f"A new instance of tabulated skills data has been initiated")
+
+    # ======================== SKILL SCANNER ======================== 
     def scan_for_new_skills(self, df, skill_col):
         
         # Refer to the obj instance's `unique_skills`
@@ -111,22 +139,9 @@ class Pipeline:
         except:
             print(f'Failed on: {x}')
             return
-        
-    def get_tabulated_jobs(self):
-        
-        # Retrieve the saved data
-        tab_skills_file = Path("../metadata/tabulated_skills.json")
-        
-        if tab_skills_file.is_file():
-            with open(tab_skills_file, mode="r") as file:
-                self.unique_skills = json.load(file)
-            print(f"File {tab_skills_file} has been loaded into the pipeline.")
-        else: 
-            self.unique_skills = {}
-            print(f"A new instance of tabulated skills data has been initiated")
     
     
-    def save_tabulated_jobs(self):
+    def save_tabulated_skills(self):
         # Save the data via complete over-write 
         
         # Retrieve the saved data
@@ -140,7 +155,7 @@ class Pipeline:
         with open(tab_skills_file, mode="w") as file:
             json.dump(self.unique_skills, file)
     
-    # --- SALARY EXTRACTOR ---
+    # ======================== SALARY EXTRACTOR ========================
     
     def extract_salary_from_job_desc(self, job_description: str):
         # This is a function to extract salary ranges or discrete salaries from job postings 
@@ -189,7 +204,7 @@ class Pipeline:
         else:
             return
     
-    # --- GEOLOCATION HANDLERS ---
+    # ======================== GEOLOCTION HANDLERS ========================
 
     def get_coordinates(self, location_str):
         # We need to extract the tuple coordinates from geopy, so we will use 
@@ -226,22 +241,8 @@ class Pipeline:
         for loc in df_unique_locs:
             if loc not in self.unique_locations:
                 self.unique_locations.append(loc)
-
-    def get_locations_file(self):
-        
-        # Retrieve the saved data
-        locations_file = Path("../metadata/unique_locations.parquet")
-        
-        if locations_file.is_file():
-            with open(locations_file, mode="r") as file:
-                self.unique_locations = json.load(file)
-            print(f"File: {locations_file}, has been loaded into the pipeline.")
-        else: 
-            self.unique_locations = {}
-            print(f"A new instance of tabulated skills data has been initiated")
     
-    
-    def save_tabulated_jobs(self):
+    def save_tabulated_locations(self):
         # Save the data via complete over-write 
         
         # Retrieve the saved data
@@ -255,5 +256,11 @@ class Pipeline:
         with open(locations_file, mode="w") as file:
             json.dump(self.unique_skills, file)
 
-    def set_db_connection():
-
+    # ======================== JOB TITLES HANDLERS ========================  
+    def get_unique_job_titles(self, df, job_col_key):
+    # A list generating method for job titles
+    
+        df_unique_jobs = df[job_col_key].unique()
+        for job in df_unique_jobs:
+            if job not in self.unique_jobs:
+                self.unique_locations.append(job)
